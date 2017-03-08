@@ -4,6 +4,8 @@
 #include <htslib/vcf.h>
 
 #include "vcfsubsample.h"
+#include "subsample.h"
+#include "genotype.h"
 
 const char *argp_program_version = vcfsubsample_VERSION_STRING;
 
@@ -84,6 +86,15 @@ static struct argp argp = {options, parse_opt, args_doc, doc};
 
 int main(int argc, char *argv[]) {
   struct arguments arguments;
+  struct genotype genotype;
+
+  int nsnps;
+
+  int ngt;
+  int ngt_arr;
+  int *gt = NULL;
+
+  int gt1, gt2;
 
   arguments.maf = DEFAULT_MAF;
   arguments.margin = DEFAULT_MARGIN;
@@ -100,8 +111,41 @@ int main(int argc, char *argv[]) {
   bcf_hdr_t *hdr = bcf_hdr_read(inf);
   fprintf(stdout, "file %s contains %i samples\n", arguments.args[0], bcf_hdr_nsamples(hdr));
 
+  bcf1_t *rec = bcf_init();
+
+  while (bcf_read(inf, hdr, rec) == 0) {
+    if (!bcf_is_snp(rec) | (rec->n_allele != 2)) {
+      // Only support biallelic SNPs
+      continue;
+    }
+    nsnps++;
+
+    genotype.hom_ref = 0;
+    genotype.hom_alt = 0;
+    genotype.het = 0;
+
+    ngt = bcf_get_format_int32(hdr, rec, "GT", &gt, &ngt_arr);
+
+    for (int i = 0; i < ngt; i += 2) {
+      gt1 = bcf_gt_allele(gt[i]);
+      gt2 = bcf_gt_allele(gt[i + 1]);
+      if (gt1 == gt2 & gt1 == 0) {
+        genotype.hom_ref++;
+      } else if (gt1 == gt2) {
+        genotype.hom_alt++;
+      } else {
+        genotype.het++;
+      }
+    }
+
+    printf("%f, %f\n", gt_maf(&genotype), gt_mgf(&genotype));
+  }
+
+  printf("%i SNPs in file\n", nsnps);
+
   bcf_hdr_destroy(hdr);
   bcf_close(inf);
+  bcf_destroy(rec);
 
   return 0;
 }
