@@ -4,13 +4,21 @@ In genome wide association (GWA) studies a recurring problem is differences in s
 
 This is a tool that will help with this subsampling.
 
+## Requirements
+
+- CMake
+- htslib
+- argp
+
+On Mac, argp can can be installed through Homebrew with the argp-standalone formula.
+
 ## Build
 
-The build requires [htslib](https://github.com/samtools/htslib) and CMake. htslib is included as a submodule, so the easiest is to clone the repository recursively.
-
 ```bash
-git clone --recursive ... && cd vcfsubsample
-mkdir build && cd build
+git clone --recursive https://github.com/maehler/vcfsubsample
+cd vcfsubsample
+mkdir build
+cd build
 cmake ..
 make
 ```
