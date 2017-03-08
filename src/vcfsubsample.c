@@ -34,20 +34,33 @@ struct arguments {
 };
 
 static error_t parse_opt(int key, char *arg, struct argp_state *state) {
+  char *rest;
   struct arguments *arguments = state->input;
 
   switch(key) {
     case OPT_MAF:
-      arguments->maf = atof(arg);
+      arguments->maf = strtod(arg, &rest);
       break;
     case OPT_MARGIN:
-      arguments->margin = atof(arg);
+      arguments->margin = strtod(arg, &rest);
+      if (*rest != 0 | arguments->margin < 0) {
+        fprintf(stderr, "Error: margin must be a number beteween 0 and 1\n");
+        return ARGP_ERR_UNKNOWN;
+      }
       break;
     case OPT_MAX_MGF:
-      arguments->max_mgf = atof(arg);
+      arguments->max_mgf = strtod(arg, &rest);
+      if (*rest != 0 | arguments->max_mgf < 0 | arguments->max_mgf > 1) {
+        fprintf(stderr, "Error: max-mgf must be a number between 0 and 1\n");
+        return ARGP_ERR_UNKNOWN;
+      }
       break;
     case OPT_MIN_SAMPLES:
-      arguments->min_samples = atoi(arg);
+      arguments->min_samples = strtol(arg, &rest, 10);
+      if (*rest != 0 | arguments->min_samples < 1) {
+        fprintf(stderr, "Error: min-samples must be a positive integer\n");
+        return ARGP_ERR_UNKNOWN;
+      }
       break;
     case ARGP_KEY_ARG:
       if (state->arg_num >= 1) {
