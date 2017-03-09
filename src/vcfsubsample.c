@@ -98,7 +98,9 @@ int main(int argc, char *argv[]) {
   int ngt_arr;
   int *gt_arr = NULL;
 
-  int skipped = 0;
+  int sstatus;
+  int skipped_mgf = 0;
+  int skipped_samples = 0;
   int nseq;
   int gt1, gt2;
 
@@ -166,9 +168,21 @@ int main(int argc, char *argv[]) {
 
     gt_to_ogt(&gt, &ogt);
 
-    if (subsample_genotype(&ogt, arguments.maf, arguments.margin,
-        arguments.max_mgf, arguments.min_samples) != 0) {
-      skipped++;
+    sstatus = subsample_genotype(&ogt, arguments.maf, arguments.margin,
+        arguments.max_mgf, arguments.min_samples);
+
+    if (sstatus != SUBSAMPLE_OK) {
+      switch (sstatus) {
+        case SUBSAMPLE_E_MGF:
+          skipped_mgf++;
+          break;
+        case SUBSAMPLE_E_SAMPLES:
+          skipped_samples++;
+          break;
+        case SUBSAMPLE_E_UNKNOWN:
+          fprintf(stderr, "Error: an unknown error occured when subsampling");
+          return EXIT_FAILURE;
+      }
       continue;
     }
 
@@ -180,7 +194,10 @@ int main(int argc, char *argv[]) {
   }
 
   fprintf(stderr, "%i biallelic SNPs in file\n", nsnps);
-  fprintf(stderr, "Downsampling impossible for %i SNPs\n", skipped);
+  fprintf(stderr, "Downsampling impossible for %i SNPs:\n",
+    skipped_mgf + skipped_samples);
+  fprintf(stderr, "\t%i due to too high MGF\n", skipped_mgf);
+  fprintf(stderr, "\t%i due to too few samples remaining\n", skipped_samples);
 
   bcf_hdr_destroy(hdr);
   bcf_close(vcf);
@@ -188,5 +205,5 @@ int main(int argc, char *argv[]) {
 
   free(seqnames);
 
-  return 0;
+  return EXIT_SUCCESS;
 }
