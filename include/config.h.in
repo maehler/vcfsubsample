@@ -1,7 +1,8 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#define vcfsubsample_VERSION_STRING @vcfsubsample_VERSION_STRING@
+#define vcfsubsample_VERSION_STRING "@vcfsubsample_VERSION_STRING@"
+#define vcfsubsample_BUG_ADDRESS "<@vcfsubsample_BUG_ADDRESS@>"
 
 #define DEFAULT_MAF 0.2
 #define DEFAULT_MARGIN 0.02

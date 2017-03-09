@@ -8,6 +8,7 @@
 #include "genotype.h"
 
 const char *argp_program_version = vcfsubsample_VERSION_STRING;
+const char *argp_program_bug_address = vcfsubsample_BUG_ADDRESS;
 
 // Documentation
 static char doc[] =

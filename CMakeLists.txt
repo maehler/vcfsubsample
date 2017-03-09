@@ -3,7 +3,8 @@ project(vcfsubsample)
 set(vcfsubsample_MAJOR 0)
 set(vcfsubsample_MINOR 1)
 set(vcfsubsample_PATCH 0)
-set(vcfsubsample_VERSION_STRING "\"${vcfsubsample_MAJOR}.${vcfsubsample_MINOR}.${vcfsubsample_PATCH}\"")
+set(vcfsubsample_VERSION_STRING "${vcfsubsample_MAJOR}.${vcfsubsample_MINOR}.${vcfsubsample_PATCH}")
+set(vcfsubsample_BUG_ADDRESS "niklas.mahler@gmail.com")
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/externals/cmake-argp/cmake" ${CMAKE_MODULE_PATH})
 
