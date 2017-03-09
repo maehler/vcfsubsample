@@ -166,7 +166,8 @@ int main(int argc, char *argv[]) {
 
     gt_to_ogt(&gt, &ogt);
 
-    if (subsample_genotype(&ogt, arguments.maf, arguments.margin, arguments.max_mgf) != 0) {
+    if (subsample_genotype(&ogt, arguments.maf, arguments.margin,
+        arguments.max_mgf, arguments.min_samples) != 0) {
       skipped++;
       continue;
     }
