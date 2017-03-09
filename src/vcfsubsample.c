@@ -87,13 +87,17 @@ static struct argp argp = {options, parse_opt, args_doc, doc};
 int main(int argc, char *argv[]) {
   struct arguments arguments;
 
-  int nsnps;
+  int nsnps = 0;
 
   int ngt;
   int ngt_arr;
   int *gt_arr = NULL;
 
+  int skipped = 0;
+  int nseq;
   int gt1, gt2;
+
+  const char **seqnames = NULL;
 
   arguments.maf = DEFAULT_MAF;
   arguments.margin = DEFAULT_MARGIN;
@@ -102,15 +106,30 @@ int main(int argc, char *argv[]) {
 
   argp_parse(&argp, argc, argv, 0, 0, &arguments);
 
+  fprintf(stderr, "Arguments:\n"
+                  "\tInput file:  %s\n"
+                  "\tTarget MAF:  %.3f\n"
+                  "\tMAF margin:  %.3f\n"
+                  "\tMax MGF:     %.3f\n"
+                  "\tMin samples: %i\n",
+          strcmp(arguments.args[0], "-") == 0 ? "stdin" : arguments.args[0],
+          arguments.maf, arguments.margin,
+          arguments.max_mgf, arguments.min_samples);
+
   htsFile *inf = bcf_open(arguments.args[0], "r");
   if (inf == NULL) {
     return EXIT_FAILURE;
   }
 
   bcf_hdr_t *hdr = bcf_hdr_read(inf);
-  fprintf(stdout, "file %s contains %i samples\n", arguments.args[0], bcf_hdr_nsamples(hdr));
+  fprintf(stderr, "file %s contains %i samples\n", arguments.args[0], bcf_hdr_nsamples(hdr));
+
+  seqnames = bcf_hdr_seqnames(hdr, &nseq);
 
   bcf1_t *rec = bcf_init();
+
+  // Output format
+  printf("chrom\tpos\toriginal_maf\tsubsampled_maf\tnsamples\n");
 
   while (bcf_read(inf, hdr, rec) == 0) {
     if (!bcf_is_snp(rec) | (rec->n_allele != 2)) {
@@ -142,23 +161,26 @@ int main(int argc, char *argv[]) {
 
     gt_to_ogt(&gt, &ogt);
 
-    printf("%i, %i, %i\n", ogt.hom_major, ogt.het, ogt.hom_minor);
-
     if (subsample_genotype(&ogt, arguments.maf, arguments.margin, arguments.max_mgf) != 0) {
-      fprintf(stderr, "downsampling impossible, skipping\n");
+      skipped++;
       continue;
     }
 
-    printf("%f:%f, %f:%f\n",
-      gt_maf(&gt), ogt_maf(&ogt), gt_mgf(&gt), ogt_mgf(&ogt));
-    printf("%i, %i, %i\n", ogt.hom_major, ogt.het, ogt.hom_minor);
+    // Chromosome, position, original MAF, subsampled MAF, number of samples
+    printf("%s\t%i\t%f\t%f\t%i\n",
+      seqnames[rec->rid], rec->pos,
+      gt_maf(&gt), ogt_maf(&ogt),
+      ogt_count_samples(&ogt));
   }
 
-  printf("%i SNPs in file\n", nsnps);
+  fprintf(stderr, "%i biallelic SNPs in file\n", nsnps);
+  fprintf(stderr, "Downsampling impossible for %i SNPs\n", skipped);
 
   bcf_hdr_destroy(hdr);
   bcf_close(inf);
   bcf_destroy(rec);
+
+  free(seqnames);
 
   return 0;
 }

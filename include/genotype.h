@@ -16,5 +16,7 @@ double gt_maf(struct genotype *gt);
 double ogt_maf(struct o_genotype *ogt);
 double gt_mgf(struct genotype *gt);
 double ogt_mgf(struct o_genotype *ogt);
+int gt_count_samples(struct genotype *gt);
+int ogt_count_samples(struct o_genotype *ogt);
 
 #endif
