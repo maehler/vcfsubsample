@@ -43,18 +43,22 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
   switch(key) {
     case OPT_MAF:
       arguments->maf = strtod(arg, &rest);
+      if (*rest != 0 | arguments->maf <= 0 | arguments->maf > 0.5) {
+        fprintf(stderr, "Error: margin must be a number between 0 (exclusive) and 0.5\n");
+        return ARGP_ERR_UNKNOWN;
+      }
       break;
     case OPT_MARGIN:
       arguments->margin = strtod(arg, &rest);
-      if (*rest != 0 | arguments->margin < 0) {
-        fprintf(stderr, "Error: margin must be a number beteween 0 and 1\n");
+      if (*rest != 0 | arguments->margin <= 0 | arguments->margin > 0.5) {
+        fprintf(stderr, "Error: margin must be a number beteween 0 (exclusive) and 0.5\n");
         return ARGP_ERR_UNKNOWN;
       }
       break;
     case OPT_MAX_MGF:
       arguments->max_mgf = strtod(arg, &rest);
-      if (*rest != 0 | arguments->max_mgf < 0 | arguments->max_mgf > 1) {
-        fprintf(stderr, "Error: max-mgf must be a number between 0 and 1\n");
+      if (*rest != 0 | arguments->max_mgf <= 0 | arguments->max_mgf > 1) {
+        fprintf(stderr, "Error: max-mgf must be a number between 0 (exclusive) and 1\n");
         return ARGP_ERR_UNKNOWN;
       }
       break;
