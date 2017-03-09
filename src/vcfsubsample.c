@@ -23,8 +23,8 @@ static char args_doc[] = "VCF";
 
 // Options
 static struct argp_option options[] = {
-  {"maf",         OPT_MAF,         "FLOAT", 0, "MAF to aim for"},
-  {"margin",      OPT_MARGIN,      "FLOAT", 0, "MAF +/- margin is ok"},
+  {"maf",         OPT_MAF,         "FLOAT", 0, "Target MAF to aim for"},
+  {"margin",      OPT_MARGIN,      "FLOAT", 0, "Allow target MAF within this margin"},
   {"max-mgf",     OPT_MAX_MGF,     "FLOAT", 0, "Maximum genotype frequency to allow for each SNP"},
   {"min-samples", OPT_MIN_SAMPLES, "N",     0, "Minimum number of samples to allow"},
   {0}
