@@ -117,12 +117,12 @@ int main(int argc, char *argv[]) {
           arguments.maf, arguments.margin,
           arguments.max_mgf, arguments.min_samples);
 
-  htsFile *inf = bcf_open(arguments.args[0], "r");
-  if (inf == NULL) {
+  htsFile *vcf = bcf_open(arguments.args[0], "r");
+  if (vcf == NULL) {
     return EXIT_FAILURE;
   }
 
-  bcf_hdr_t *hdr = bcf_hdr_read(inf);
+  bcf_hdr_t *hdr = bcf_hdr_read(vcf);
   fprintf(stderr, "file %s contains %i samples\n", arguments.args[0], bcf_hdr_nsamples(hdr));
 
   seqnames = bcf_hdr_seqnames(hdr, &nseq);
@@ -132,7 +132,7 @@ int main(int argc, char *argv[]) {
   // Output format
   printf("chrom\tpos\toriginal_maf\tsubsampled_maf\tnsamples\n");
 
-  while (bcf_read(inf, hdr, rec) == 0) {
+  while (bcf_read(vcf, hdr, rec) == 0) {
     if (!bcf_is_snp(rec) | (rec->n_allele != 2)) {
       // Only support biallelic SNPs
       continue;
@@ -178,7 +178,7 @@ int main(int argc, char *argv[]) {
   fprintf(stderr, "Downsampling impossible for %i SNPs\n", skipped);
 
   bcf_hdr_destroy(hdr);
-  bcf_close(inf);
+  bcf_close(vcf);
   bcf_destroy(rec);
 
   free(seqnames);
