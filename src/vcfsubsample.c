@@ -86,13 +86,12 @@ static struct argp argp = {options, parse_opt, args_doc, doc};
 
 int main(int argc, char *argv[]) {
   struct arguments arguments;
-  struct genotype genotype;
 
   int nsnps;
 
   int ngt;
   int ngt_arr;
-  int *gt = NULL;
+  int *gt_arr = NULL;
 
   int gt1, gt2;
 
@@ -120,25 +119,39 @@ int main(int argc, char *argv[]) {
     }
     nsnps++;
 
-    genotype.hom_ref = 0;
-    genotype.hom_alt = 0;
-    genotype.het = 0;
+    struct genotype gt;
+    struct o_genotype ogt;
 
-    ngt = bcf_get_format_int32(hdr, rec, "GT", &gt, &ngt_arr);
+    gt.hom_ref = 0;
+    gt.hom_alt = 0;
+    gt.het = 0;
+
+    ngt = bcf_get_genotypes(hdr, rec, &gt_arr, &ngt_arr);
 
     for (int i = 0; i < ngt; i += 2) {
-      gt1 = bcf_gt_allele(gt[i]);
-      gt2 = bcf_gt_allele(gt[i + 1]);
+      gt1 = bcf_gt_allele(gt_arr[i]);
+      gt2 = bcf_gt_allele(gt_arr[i + 1]);
       if (gt1 == gt2 & gt1 == 0) {
-        genotype.hom_ref++;
+        gt.hom_ref++;
       } else if (gt1 == gt2) {
-        genotype.hom_alt++;
+        gt.hom_alt++;
       } else {
-        genotype.het++;
+        gt.het++;
       }
     }
 
-    printf("%f, %f\n", gt_maf(&genotype), gt_mgf(&genotype));
+    gt_to_ogt(&gt, &ogt);
+
+    printf("%i, %i, %i\n", ogt.hom_major, ogt.het, ogt.hom_minor);
+
+    if (subsample_genotype(&ogt, arguments.maf, arguments.margin, arguments.max_mgf) != 0) {
+      fprintf(stderr, "downsampling impossible, skipping\n");
+      continue;
+    }
+
+    printf("%f:%f, %f:%f\n",
+      gt_maf(&gt), ogt_maf(&ogt), gt_mgf(&gt), ogt_mgf(&ogt));
+    printf("%i, %i, %i\n", ogt.hom_major, ogt.het, ogt.hom_minor);
   }
 
   printf("%i SNPs in file\n", nsnps);
