@@ -8,5 +8,6 @@
 #define DEFAULT_MARGIN 0.02
 #define DEFAULT_MAX_MGF 0.9
 #define DEFAULT_MIN_SAMPLES 2
+#define DEFAULT_SAMPLENAMES false
 
 #endif

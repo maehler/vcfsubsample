@@ -1,6 +1,13 @@
 #ifndef GENOTYPE_H
 #define GENOTYPE_H
 
+#define GENOTYPE_SWITCHED 1
+#define GENOTYPE_SAME 0
+
+#define GENOTYPE_HOM_REF 0
+#define GENOTYPE_HET 1
+#define GENOTYPE_HOM_ALT 2
+
 // A genotype struct that is based on reference and alternative alleles
 struct genotype {
   unsigned int hom_ref, hom_alt, het;
