@@ -20,19 +20,19 @@ int subsample_genotype(struct o_genotype *ogt, double target_maf, double margin,
     return SUBSAMPLE_E_SAMPLES;
   }
 
-  if (maf > target_maf - margin & maf < target_maf + margin) {
+  if (maf > target_maf - margin && maf < target_maf + margin) {
     return SUBSAMPLE_OK;
   }
 
-  if (maf < target_maf & ogt->hom_major > 0) {
+  if (maf < target_maf && ogt->hom_major > 0) {
     ogt->hom_major--;
     return subsample_genotype(ogt, target_maf, margin, max_mgf, min_samples);
   }
-  if (maf > target_maf & ogt->hom_minor > 0) {
+  if (maf > target_maf && ogt->hom_minor > 0) {
     ogt->hom_minor--;
     return subsample_genotype(ogt, target_maf, margin, max_mgf, min_samples);
   }
-  if (maf > target_maf & ogt->het > 0) {
+  if (maf > target_maf && ogt->het > 0) {
     ogt->het--;
     return subsample_genotype(ogt, target_maf, margin, max_mgf, min_samples);
   }

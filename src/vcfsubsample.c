@@ -157,7 +157,7 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < ngt; i += 2) {
       gt1 = bcf_gt_allele(gt_arr[i]);
       gt2 = bcf_gt_allele(gt_arr[i + 1]);
-      if (gt1 == gt2 & gt1 == 0) {
+      if (gt1 == gt2 && gt1 == 0) {
         gt.hom_ref++;
       } else if (gt1 == gt2) {
         gt.hom_alt++;
