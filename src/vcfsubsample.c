@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <argp.h>
 #include <htslib/vcf.h>
+#include <stdbool.h>
 
 #include "vcfsubsample.h"
 #include "subsample.h"
@@ -20,6 +21,7 @@ static char args_doc[] = "VCF";
 #define OPT_MARGIN 2
 #define OPT_MAX_MGF 3
 #define OPT_MIN_SAMPLES 4
+#define OPT_SAMPLE_NAMES 5
 
 // Options
 static struct argp_option options[] = {
@@ -27,13 +29,15 @@ static struct argp_option options[] = {
   {"margin",      OPT_MARGIN,      "FLOAT", 0, "Allow target MAF within this margin"},
   {"max-mgf",     OPT_MAX_MGF,     "FLOAT", 0, "Maximum genotype frequency to allow for each SNP"},
   {"min-samples", OPT_MIN_SAMPLES, "N",     0, "Minimum number of samples to allow"},
+  {"samplenames", OPT_SAMPLE_NAMES, 0,      0, "Output names of suggested samples to use for "
+                                               "subsampling instead of the number of genotypes of each class"},
   {0}
 };
 
 struct arguments {
   char *args[1];
   double maf, margin, max_mgf;
-  unsigned int min_samples;
+  unsigned int min_samples, samplenames;
 };
 
 static error_t parse_opt(int key, char *arg, struct argp_state *state) {
@@ -69,6 +73,9 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         return ARGP_ERR_UNKNOWN;
       }
       break;
+    case OPT_SAMPLE_NAMES:
+      arguments->samplenames = true;
+      break;
     case ARGP_KEY_ARG:
       if (state->arg_num >= 1) {
         argp_usage(state);
@@ -97,12 +104,18 @@ int main(int argc, char *argv[]) {
   int ngt;
   int ngt_arr;
   int *gt_arr = NULL;
+  int *orig_gt_arr = NULL;
+  int n_subset_hom_minor;
+  int n_subset_het;
+  int n_subset_hom_major;
+  int n_subset_samples;
 
   int sstatus;
   int skipped_mgf = 0;
   int skipped_samples = 0;
   int nseq;
   int gt1, gt2;
+  int gt_switch;
 
   const char **seqnames = NULL;
 
@@ -110,6 +123,7 @@ int main(int argc, char *argv[]) {
   arguments.margin = DEFAULT_MARGIN;
   arguments.max_mgf = DEFAULT_MAX_MGF;
   arguments.min_samples = DEFAULT_MIN_SAMPLES;
+  arguments.samplenames = DEFAULT_SAMPLENAMES;
 
   argp_parse(&argp, argc, argv, 0, 0, &arguments);
 
@@ -130,13 +144,19 @@ int main(int argc, char *argv[]) {
 
   bcf_hdr_t *hdr = bcf_hdr_read(vcf);
   fprintf(stderr, "file %s contains %i samples\n", arguments.args[0], bcf_hdr_nsamples(hdr));
+  orig_gt_arr = malloc(bcf_hdr_nsamples(hdr) * sizeof(int));
 
   seqnames = bcf_hdr_seqnames(hdr, &nseq);
 
   bcf1_t *rec = bcf_init();
 
   // Output format
-  printf("chrom\tpos\toriginal_maf\tsubsampled_maf\tnsamples\n");
+  printf("chrom\tpos\toriginal_maf\tsubsampled_maf\tnsamples\t");
+  if (arguments.samplenames) {
+    printf("samples\n");
+  } else {
+    printf("n_hom_major\tn_het\tn_hom_minor\n");
+  }
 
   while (bcf_read(vcf, hdr, rec) == 0) {
     if (!bcf_is_snp(rec) | (rec->n_allele != 2)) {
@@ -159,14 +179,17 @@ int main(int argc, char *argv[]) {
       gt2 = bcf_gt_allele(gt_arr[i + 1]);
       if (gt1 == gt2 && gt1 == 0) {
         gt.hom_ref++;
+        orig_gt_arr[i / 2] = GENOTYPE_HOM_REF;
       } else if (gt1 == gt2) {
         gt.hom_alt++;
+        orig_gt_arr[i / 2] = GENOTYPE_HOM_ALT;
       } else {
         gt.het++;
+        orig_gt_arr[i / 2] = GENOTYPE_HET;
       }
     }
 
-    gt_to_ogt(&gt, &ogt);
+    gt_switch = gt_to_ogt(&gt, &ogt);
 
     sstatus = subsample_genotype(&ogt, arguments.maf, arguments.margin,
         arguments.max_mgf, arguments.min_samples);
@@ -186,11 +209,55 @@ int main(int argc, char *argv[]) {
       continue;
     }
 
-    // Chromosome, position, original MAF, subsampled MAF, number of samples
-    printf("%s\t%i\t%f\t%f\t%i\n",
+    printf("%s\t%i\t%f\t%f\t%i",
       seqnames[rec->rid], rec->pos,
       gt_maf(&gt), ogt_maf(&ogt),
       ogt_count_samples(&ogt));
+
+    if (arguments.samplenames) {
+      n_subset_hom_major = 0;
+      n_subset_hom_minor = 0;
+      n_subset_het = 0;
+      n_subset_samples = 0;
+
+      printf("\t");
+
+      for (int i = 0; i < bcf_hdr_nsamples(hdr); i++) {
+        if (n_subset_hom_major < ogt.hom_major &&
+            ((gt_switch == GENOTYPE_SAME && orig_gt_arr[i] == GENOTYPE_HOM_REF) ||
+              (gt_switch == GENOTYPE_SWITCHED && orig_gt_arr[i] == GENOTYPE_HOM_ALT))) {
+          if (n_subset_samples > 0) {
+            printf(",");
+          }
+          printf("%s", hdr->samples[i]);
+          n_subset_hom_major++;
+          n_subset_samples++;
+        }
+
+        if (n_subset_hom_minor < ogt.hom_minor &&
+            ((gt_switch == GENOTYPE_SAME && orig_gt_arr[i] == GENOTYPE_HOM_ALT) ||
+              (gt_switch == GENOTYPE_SWITCHED && orig_gt_arr[i] == GENOTYPE_HOM_REF))) {
+          if (n_subset_samples > 0) {
+            printf(",");
+          }
+          printf("%s", hdr->samples[i]);
+          n_subset_hom_minor++;
+          n_subset_samples++;
+        }
+
+        if (n_subset_het < ogt.het) {
+          if (n_subset_samples > 0) {
+            printf(",");
+          }
+          printf("%s", hdr->samples[i]);
+          n_subset_het++;
+          n_subset_samples++;
+        }
+      }
+    } else {
+      printf("\t%i\t%i\t%i", ogt.hom_major, ogt.het, ogt.hom_minor);
+    }
+    printf("\n");
   }
 
   fprintf(stderr, "%i biallelic SNPs in file\n", nsnps);
@@ -204,6 +271,7 @@ int main(int argc, char *argv[]) {
   bcf_destroy(rec);
 
   free(seqnames);
+  free(orig_gt_arr);
 
   return EXIT_SUCCESS;
 }

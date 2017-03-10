@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.6.1)
 project(vcfsubsample)
 set(vcfsubsample_MAJOR 0)
-set(vcfsubsample_MINOR 1)
+set(vcfsubsample_MINOR 2)
 set(vcfsubsample_PATCH 0)
 set(vcfsubsample_VERSION_STRING "${vcfsubsample_MAJOR}.${vcfsubsample_MINOR}.${vcfsubsample_PATCH}")
 set(vcfsubsample_BUG_ADDRESS "niklas.mahler@gmail.com")

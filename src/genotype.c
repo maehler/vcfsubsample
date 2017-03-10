@@ -15,11 +15,12 @@ int gt_to_ogt(struct genotype *gt, struct o_genotype *ogt) {
   if (2 * gt->hom_ref + gt->het > 2 * gt->hom_alt + gt->het) {
     ogt->hom_major = gt->hom_ref;
     ogt->hom_minor = gt->hom_alt;
+    return GENOTYPE_SAME;
   } else {
     ogt->hom_major = gt->hom_alt;
     ogt->hom_minor = gt->hom_ref;
+    return GENOTYPE_SWITCHED;
   }
-  return 0;
 }
 
 double gt_maf(struct genotype *gt) {
