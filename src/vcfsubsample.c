@@ -203,7 +203,7 @@ int main(int argc, char *argv[]) {
     if (sstatus != SUBSAMPLE_OK) {
       switch (sstatus) {
         case SUBSAMPLE_E_MGF:
-          printf("%s\t%i\t%f\tNA\t0", seqnames[rec->rid], rec->pos, gt_maf(&gt));
+          printf("%s\t%i\t%f\tNA\t0", seqnames[rec->rid], rec->pos + 1, gt_maf(&gt));
           if (arguments.samplenames) {
             printf("\tNA\n");
           } else {
@@ -212,7 +212,7 @@ int main(int argc, char *argv[]) {
           skipped_mgf++;
           break;
         case SUBSAMPLE_E_SAMPLES:
-          printf("%s\t%i\t%f\tNA\t0", seqnames[rec->rid], rec->pos, gt_maf(&gt));
+          printf("%s\t%i\t%f\tNA\t0", seqnames[rec->rid], rec->pos + 1, gt_maf(&gt));
           if (arguments.samplenames) {
             printf("\tNA\n");
           } else {
@@ -227,8 +227,9 @@ int main(int argc, char *argv[]) {
       continue;
     }
 
+    // bcf1_t::pos is zero-based
     printf("%s\t%i\t%f\t%f\t%i",
-      seqnames[rec->rid], rec->pos,
+      seqnames[rec->rid], rec->pos + 1,
       gt_maf(&gt), ogt_maf(&ogt),
       ogt_count_samples(&ogt));
 
