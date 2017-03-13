@@ -21,4 +21,31 @@ mkdir build
 cd build
 cmake ..
 make
+make install
 ```
+
+## Usage
+
+```
+> vcfsubsample --help
+Usage: vcfsubsample [OPTION...] VCF
+vcfsubsample -- subsample a VCF file in order to fix the minor allele frequency
+across SNPs
+
+     --exact-samples        Subsample to exactly --min-samples
+     --keep-missing         Keep SNPs for which subsampling is not possible
+     --maf=FLOAT            Target MAF to aim for
+     --margin=FLOAT         Allow target MAF within this margin
+     --max-mgf=FLOAT        Maximum genotype frequency to allow for each SNP
+     --min-samples=N        Minimum number of samples to allow
+     --samplenames          Output names of suggested samples to use for
+                            subsampling instead of the number of genotypes of
+                            each class
+ -?, --help                 Give this help list
+     --usage                Give a short usage message
+ -V, --version              Print program version
+
+Report bugs to <niklas.mahler@gmail.com>.
+```
+
+Genotype data can be read from stdin by using `-` for the VCF filename.
