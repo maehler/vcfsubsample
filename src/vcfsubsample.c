@@ -203,20 +203,24 @@ int main(int argc, char *argv[]) {
     if (sstatus != SUBSAMPLE_OK) {
       switch (sstatus) {
         case SUBSAMPLE_E_MGF:
-          printf("%s\t%i\t%f\tNA\t0", seqnames[rec->rid], rec->pos + 1, gt_maf(&gt));
-          if (arguments.samplenames) {
-            printf("\tNA\n");
-          } else {
-            printf("\tNA\tNA\tNA\n");
+          if (arguments.keep_missing) {
+            printf("%s\t%i\t%f\tNA\t0", seqnames[rec->rid], rec->pos + 1, gt_maf(&gt));
+            if (arguments.samplenames) {
+              printf("\tNA\n");
+            } else {
+              printf("\tNA\tNA\tNA\n");
+            }
           }
           skipped_mgf++;
           break;
         case SUBSAMPLE_E_SAMPLES:
-          printf("%s\t%i\t%f\tNA\t0", seqnames[rec->rid], rec->pos + 1, gt_maf(&gt));
-          if (arguments.samplenames) {
-            printf("\tNA\n");
-          } else {
-            printf("\tNA\tNA\tNA\n");
+          if (arguments.keep_missing) {
+            printf("%s\t%i\t%f\tNA\t0", seqnames[rec->rid], rec->pos + 1, gt_maf(&gt));
+            if (arguments.samplenames) {
+              printf("\tNA\n");
+            } else {
+              printf("\tNA\tNA\tNA\n");
+            }
           }
           skipped_samples++;
           break;
