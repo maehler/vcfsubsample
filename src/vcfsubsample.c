@@ -22,22 +22,24 @@ static char args_doc[] = "VCF";
 #define OPT_MAX_MGF 3
 #define OPT_MIN_SAMPLES 4
 #define OPT_SAMPLE_NAMES 5
+#define OPT_KEEP_MISSING 6
 
 // Options
 static struct argp_option options[] = {
-  {"maf",         OPT_MAF,         "FLOAT", 0, "Target MAF to aim for"},
-  {"margin",      OPT_MARGIN,      "FLOAT", 0, "Allow target MAF within this margin"},
-  {"max-mgf",     OPT_MAX_MGF,     "FLOAT", 0, "Maximum genotype frequency to allow for each SNP"},
-  {"min-samples", OPT_MIN_SAMPLES, "N",     0, "Minimum number of samples to allow"},
-  {"samplenames", OPT_SAMPLE_NAMES, 0,      0, "Output names of suggested samples to use for "
+  {"maf",         OPT_MAF,          "FLOAT", 0, "Target MAF to aim for"},
+  {"margin",      OPT_MARGIN,       "FLOAT", 0, "Allow target MAF within this margin"},
+  {"max-mgf",     OPT_MAX_MGF,      "FLOAT", 0, "Maximum genotype frequency to allow for each SNP"},
+  {"min-samples", OPT_MIN_SAMPLES,  "N",     0, "Minimum number of samples to allow"},
+  {"samplenames", OPT_SAMPLE_NAMES,  0,      0, "Output names of suggested samples to use for "
                                                "subsampling instead of the number of genotypes of each class"},
+  {"keep-missing", OPT_KEEP_MISSING, 0,      0, "Keep SNPs for which subsampling is not possible"},
   {0}
 };
 
 struct arguments {
   char *args[1];
   double maf, margin, max_mgf;
-  unsigned int min_samples, samplenames;
+  unsigned int min_samples, samplenames, keep_missing;
 };
 
 static error_t parse_opt(int key, char *arg, struct argp_state *state) {
@@ -75,6 +77,9 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
       break;
     case OPT_SAMPLE_NAMES:
       arguments->samplenames = true;
+      break;
+    case OPT_KEEP_MISSING:
+      arguments->keep_missing = true;
       break;
     case ARGP_KEY_ARG:
       if (state->arg_num >= 1) {
@@ -124,6 +129,7 @@ int main(int argc, char *argv[]) {
   arguments.max_mgf = DEFAULT_MAX_MGF;
   arguments.min_samples = DEFAULT_MIN_SAMPLES;
   arguments.samplenames = DEFAULT_SAMPLENAMES;
+  arguments.keep_missing = DEFAULT_KEEP_MISSING;
 
   argp_parse(&argp, argc, argv, 0, 0, &arguments);
 
@@ -197,9 +203,21 @@ int main(int argc, char *argv[]) {
     if (sstatus != SUBSAMPLE_OK) {
       switch (sstatus) {
         case SUBSAMPLE_E_MGF:
+          printf("%s\t%i\t%f\tNA\t0", seqnames[rec->rid], rec->pos, gt_maf(&gt));
+          if (arguments.samplenames) {
+            printf("\tNA\n");
+          } else {
+            printf("\tNA\tNA\tNA\n");
+          }
           skipped_mgf++;
           break;
         case SUBSAMPLE_E_SAMPLES:
+          printf("%s\t%i\t%f\tNA\t0", seqnames[rec->rid], rec->pos, gt_maf(&gt));
+          if (arguments.samplenames) {
+            printf("\tNA\n");
+          } else {
+            printf("\tNA\tNA\tNA\n");
+          }
           skipped_samples++;
           break;
         case SUBSAMPLE_E_UNKNOWN:

@@ -9,5 +9,6 @@
 #define DEFAULT_MAX_MGF 0.9
 #define DEFAULT_MIN_SAMPLES 2
 #define DEFAULT_SAMPLENAMES false
+#define DEFAULT_KEEP_MISSING false
 
 #endif
