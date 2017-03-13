@@ -231,7 +231,7 @@ int main(int argc, char *argv[]) {
           skipped_samples++;
           break;
         case SUBSAMPLE_E_UNKNOWN:
-          fprintf(stderr, "Error: an unknown error occured when subsampling");
+          fprintf(stderr, "Error: an unknown error occured when subsampling\n");
           return EXIT_FAILURE;
       }
       continue;
