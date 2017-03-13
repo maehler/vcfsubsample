@@ -10,5 +10,6 @@
 #define DEFAULT_MIN_SAMPLES 2
 #define DEFAULT_SAMPLENAMES false
 #define DEFAULT_KEEP_MISSING false
+#define DEFAULT_EXACT_SAMPLES false
 
 #endif

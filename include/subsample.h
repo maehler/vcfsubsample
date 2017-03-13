@@ -9,6 +9,6 @@
 #define SUBSAMPLE_E_UNKNOWN 3
 
 int subsample_genotype(struct o_genotype *ogt, double target_maf, double margin,
-  double max_mgf, int min_samples);
+  double max_mgf, int min_samples, unsigned int exact_samples);
 
 #endif
