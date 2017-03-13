@@ -56,8 +56,8 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
       break;
     case OPT_MARGIN:
       arguments->margin = strtod(arg, &rest);
-      if (*rest != 0 | arguments->margin <= 0 | arguments->margin > 0.5) {
-        fprintf(stderr, "Error: margin must be a number beteween 0 (exclusive) and 0.5\n");
+      if (*rest != 0 | arguments->margin < 0 | arguments->margin > 0.5) {
+        fprintf(stderr, "Error: margin must be a number beteween 0 and 0.5\n");
         return ARGP_ERR_UNKNOWN;
       }
       break;
