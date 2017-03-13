@@ -140,14 +140,18 @@ int main(int argc, char *argv[]) {
   argp_parse(&argp, argc, argv, 0, 0, &arguments);
 
   fprintf(stderr, "Arguments:\n"
-                  "\tInput file:  %s\n"
-                  "\tTarget MAF:  %.3f\n"
-                  "\tMAF margin:  %.3f\n"
-                  "\tMax MGF:     %.3f\n"
-                  "\tMin samples: %i\n",
+                  "\tInput file:    %s\n"
+                  "\tTarget MAF:    %.3f\n"
+                  "\tMAF margin:    %.3f\n"
+                  "\tMax MGF:       %.3f\n"
+                  "\tMin samples:   %i\n"
+                  "\tExact samples: %s\n"
+                  "\tKeep missing:  %s\n",
           strcmp(arguments.args[0], "-") == 0 ? "stdin" : arguments.args[0],
           arguments.maf, arguments.margin,
-          arguments.max_mgf, arguments.min_samples);
+          arguments.max_mgf, arguments.min_samples,
+          arguments.exact_samples ? "yes" : "no",
+          arguments.keep_missing ? "yes" : "no");
 
   htsFile *vcf = bcf_open(arguments.args[0], "r");
   if (vcf == NULL) {
