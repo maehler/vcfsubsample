@@ -6,7 +6,7 @@ set(vcfsubsample_PATCH 0)
 set(vcfsubsample_VERSION_STRING "${vcfsubsample_MAJOR}.${vcfsubsample_MINOR}.${vcfsubsample_PATCH}")
 set(vcfsubsample_BUG_ADDRESS "niklas.mahler@gmail.com")
 
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/externals/cmake-argp/cmake" ${CMAKE_MODULE_PATH})
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/externals/CMake-argp/cmake" ${CMAKE_MODULE_PATH})
 
 find_package(argp REQUIRED)
 find_path(HTSLIB_INCLUDE_DIR htslib/vcf.h)
@@ -24,7 +24,7 @@ else()
   message("htslib lib = ${HTSLIB_LIBRARIES}")
 endif()
 
-set(LIBS ${LIBS} ${HTSLIB_LIBRARIES} ${ARGP_LIBRARIES})
+set(LIBS -lm ${LIBS} ${HTSLIB_LIBRARIES} ${ARGP_LIBRARIES})
 include_directories("${CMAKE_SOURCE_DIR}/include")
 
 configure_file("${CMAKE_SOURCE_DIR}/include/config.h.in"
